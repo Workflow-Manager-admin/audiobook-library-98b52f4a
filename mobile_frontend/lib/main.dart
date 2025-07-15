@@ -223,7 +223,7 @@ class Audiobook {
   });
 }
 
-/// Dummy catalog
+/// Dummy catalog with more audiobooks (some using asset images)
 const sampleAudiobooks = [
   Audiobook(
     id: 'a1',
@@ -246,9 +246,52 @@ const sampleAudiobooks = [
     coverUrl: 'https://covers.openlibrary.org/b/id/13518667-L.jpg',
     durationSeconds: 4870,
   ),
+  // Additional audiobooks with asset covers
+  Audiobook(
+    id: 'a4',
+    title: 'Journey to the Stars',
+    author: 'Elena Blue',
+    coverUrl: 'assets/cover_01.jpg',
+    durationSeconds: 7250,
+  ),
+  Audiobook(
+    id: 'a5',
+    title: 'Coding in the Dark',
+    author: 'Max Power',
+    coverUrl: 'assets/cover_02.jpg',
+    durationSeconds: 8142,
+  ),
+  Audiobook(
+    id: 'a6',
+    title: 'Poetry of Silence',
+    author: 'Lila Moon',
+    coverUrl: 'assets/cover_03.jpg',
+    durationSeconds: 3990,
+  ),
+  Audiobook(
+    id: 'a7',
+    title: 'Super You!',
+    author: 'Opal Reed',
+    coverUrl: 'assets/cover_04.jpg',
+    durationSeconds: 6002,
+  ),
+  Audiobook(
+    id: 'a8',
+    title: 'Design Your Life',
+    author: 'Finn Tiger',
+    coverUrl: 'assets/cover_05.jpg',
+    durationSeconds: 5225,
+  ),
+  Audiobook(
+    id: 'a9',
+    title: 'Science & Stars',
+    author: 'Riley Sky',
+    coverUrl: 'assets/cover_06.jpg',
+    durationSeconds: 7575,
+  ),
 ];
 
-/// Store Tab UI (catalog & purchase)
+/// Store Tab UI (catalog & purchase) in a grid view with covers
 class StoreTab extends StatelessWidget {
   final List<Audiobook> catalog;
   final Set<String> libraryIds;
@@ -262,55 +305,119 @@ class StoreTab extends StatelessWidget {
     required this.onOpen,
   });
 
+  Widget buildCover(Audiobook book) {
+    final isAsset = book.coverUrl.startsWith('assets/');
+    final double width = 86;
+    final double height = 122;
+    if (isAsset) {
+      return Image.asset(
+        book.coverUrl,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          color: kSecondaryColor.withAlpha((255 * 0.2).round()),
+          width: width,
+          height: height,
+          child: const Icon(Icons.image),
+        ),
+      );
+    } else {
+      return Image.network(
+        book.coverUrl,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          color: kSecondaryColor.withAlpha((255 * 0.2).round()),
+          width: width,
+          height: height,
+          child: const Icon(Icons.image),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 22),
-      itemCount: catalog.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 18),
-      itemBuilder: (_, idx) {
-        final book = catalog[idx];
-        final owned = libraryIds.contains(book.id);
-        return Card(
-          elevation: 2,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          color: Colors.white,
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(14),
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.network(
-                book.coverUrl,
-                errorBuilder: (_, __, ___) => Container(
-                  width: 60,
-                  height: 84,
-                  color: kSecondaryColor.withAlpha((255 * 0.2).round()),
-                  child: const Icon(Icons.image),
-                ),
-                width: 60,
-                height: 84,
-                fit: BoxFit.cover,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
+      child: GridView.builder(
+        itemCount: catalog.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, // two columns
+          mainAxisSpacing: 20,
+          crossAxisSpacing: 16,
+          childAspectRatio: 0.67, // portrait book shape
+        ),
+        itemBuilder: (_, idx) {
+          final book = catalog[idx];
+          final owned = libraryIds.contains(book.id);
+          return Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(17),
+            ),
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: buildCover(book),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    book.title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16.5,
+                      color: kPrimaryColor,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    book.author,
+                    style: const TextStyle(
+                        fontSize: 12.7, color: kSecondaryColor),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const Spacer(),
+                  owned
+                      ? OutlinedButton.icon(
+                          icon: const Icon(Icons.play_arrow_rounded, size: 17),
+                          label: const Text("Open"),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(34, 34),
+                            foregroundColor: kPrimaryColor,
+                            side: const BorderSide(color: kAccentColor),
+                            padding: const EdgeInsets.symmetric(horizontal: 5),
+                          ),
+                          onPressed: () => onOpen(book),
+                        )
+                      : ElevatedButton.icon(
+                          icon: const Icon(Icons.shopping_cart_checkout, size: 17),
+                          label: const Text("Buy"),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(34, 34),
+                            backgroundColor: kAccentColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
+                          onPressed: () => onPurchase(book),
+                        ),
+                ],
               ),
             ),
-            title: Text(book.title,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 18)),
-            subtitle: Text(book.author),
-            trailing: owned
-                ? OutlinedButton.icon(
-                    icon: const Icon(Icons.play_arrow_rounded, size: 20),
-                    label: const Text("Open"),
-                    onPressed: () => onOpen(book),
-                  )
-                : ElevatedButton.icon(
-                    icon: const Icon(Icons.shopping_cart_checkout, size: 20),
-                    label: const Text("Buy"),
-                    onPressed: () => onPurchase(book),
-                  ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
